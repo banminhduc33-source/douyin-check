@@ -1,13 +1,17 @@
 name: douyin
 on:
   schedule:
-    - cron: "0 */3 * * *"   # 07h, 10h, 13h, 16h, 19h, 22h, 01h, 04h giờ Việt Nam
+    - cron: "0 0-15 * * *"   # mỗi giờ, 07:00-22:00 giờ Việt Nam (00:00-15:00 UTC)
   workflow_dispatch:
+
+concurrency:
+  group: douyin
+  cancel-in-progress: false
 
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -29,7 +33,7 @@ jobs:
         run: printf '%s' "$TOKEN_JSON" > token.json
 
       - name: Chạy
-        run: python lp_douyin.py link_unique.txt --lp-path ./lightpanda --workers 5 --min-time 3 --max-hours 3 --sort time --timeout 10
+        run: python lp_douyin.py link_unique.txt --lp-path ./lightpanda --workers 5 --min-time 3 --max-hours 2 --sort time --timeout 10
 
       - name: Lưu bản sao kết quả
         if: always()
