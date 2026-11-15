@@ -1,0 +1,40 @@
+name: douyin
+on:
+  schedule:
+    - cron: "0 */3 * * *"   # 07h, 10h, 13h, 16h, 19h, 22h, 01h, 04h giờ Việt Nam
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cài thư viện
+        run: pip install websocket-client google-api-python-client google-auth-oauthlib
+
+      - name: Tải Lightpanda
+        run: |
+          curl -fL -o lightpanda https://github.com/lightpanda-io/browser/releases/download/nightly/lightpanda-x86_64-linux
+          chmod +x lightpanda
+
+      - name: Tạo token.json
+        env:
+          TOKEN_JSON: ${{ secrets.TOKEN_JSON }}
+        run: printf '%s' "$TOKEN_JSON" > token.json
+
+      - name: Chạy
+        run: python lp_douyin.py link_unique.txt --lp-path ./lightpanda --workers 5 --min-time 3 --max-hours 3 --sort time --timeout 10
+
+      - name: Lưu bản sao kết quả
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ketqua
+          path: doyin/*.html
+          retention-days: 2
