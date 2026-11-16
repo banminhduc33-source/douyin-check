@@ -1,20 +1,20 @@
 name: douyin
 on:
   schedule:
-    - cron: "*/10 0-14 * * *"   # mỗi 10 phút, 07:00-21:50 giờ VN
-    - cron: "0 15 * * *"        # 22:00 giờ VN
-    - cron: "0 3 1,15 * *"      # keepalive: ngày 1 và 15 hằng tháng
+    - cron: "*/5 * * * *"   # mỗi 5 phút, cả ngày
   workflow_dispatch:
+
+concurrency:
+  group: douyin
+  cancel-in-progress: false
+
+permissions:
+  contents: write   # cần cho bước keepalive
 
 jobs:
   run:
-    # Chạy khi không phải cron keepalive (gồm cả bấm tay)
-    if: github.event.schedule != '0 3 1,15 * *'
     runs-on: ubuntu-latest
-    timeout-minutes: 9
-    concurrency:
-      group: douyin
-      cancel-in-progress: false
+    timeout-minutes: 4
     steps:
       - uses: actions/checkout@v4
 
@@ -46,19 +46,14 @@ jobs:
           path: doyin/*.html
           retention-days: 1
 
-  keepalive:
-    # Chỉ chạy khi đúng cron keepalive
-    if: github.event.schedule == '0 3 1,15 * *'
-    runs-on: ubuntu-latest
-    timeout-minutes: 2
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Commit rỗng để reset bộ đếm 60 ngày
+      - name: Keepalive (giữ repo sống nếu 30 ngày chưa có commit)
+        if: always()
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit --allow-empty -m "chore: keepalive"
-          git push
+          LAST=$(git log -1 --format=%ct)
+          NOW=$(date +%s)
+          if [ $(( NOW - LAST )) -gt 2592000 ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit --allow-empty -m "chore: keepalive"
+            git push
+          fi
