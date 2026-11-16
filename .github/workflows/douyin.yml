@@ -1,9 +1,9 @@
 name: douyin
 on:
-  # Chạy 1 lần mỗi khi có file được thêm/sửa trong thư mục doyin/
-  push:
-    paths:
-      - "doyin/**"
+  # Google Apps Script phát hiện file mới trong thư mục Douyin trên Drive
+  # rồi gọi: POST /repos/<owner>/<repo>/dispatches  {"event_type":"drive-new-file"}
+  repository_dispatch:
+    types: [drive-new-file]
   workflow_dispatch:
 
 concurrency:
