@@ -1,7 +1,9 @@
 name: douyin
 on:
-  schedule:
-    - cron: "*/5 * * * *"   # mỗi 5 phút, cả ngày
+  # Chạy 1 lần mỗi khi có file được thêm/sửa trong thư mục doyin/
+  push:
+    paths:
+      - "doyin/**"
   workflow_dispatch:
 
 concurrency:
